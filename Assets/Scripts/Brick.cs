@@ -4,27 +4,36 @@ using UnityEngine;
 
 public class Brick : MonoBehaviour
 {
+    public float speedX;
+    public float speedY;
+    protected bool reusable;
+
     protected virtual void Start()
     {
         reusable = false;
     }
 
-    public void SetSpeedX(float newSpeed)
+    protected virtual void OnBecameInvisible()
+    {
+        reusable = true;
+    }
+
+    public virtual void SetSpeedX(float newSpeed)
     {
         speedX = newSpeed;
     }
 
-    public float GetSpeedX()
+    public virtual float GetSpeedX()
     {
         return speedX;
     }
 
-    public void SetSpeedY(float newSpeed)
+    public virtual void SetSpeedY(float newSpeed)
     {
         speedY = newSpeed;
     }
 
-    public float GetSpeedY()
+    public virtual float GetSpeedY()
     {
         return speedY;
     }
@@ -39,17 +48,9 @@ public class Brick : MonoBehaviour
         reusable = false;
     }
 
-    protected virtual void OnBecameInvisible()
-    {
-        reusable = true;
-    }
-
     public virtual void OnHitAction()
     {
         // Do nothing for Static Brick
     }
 
-    protected float speedX;
-    protected float speedY;
-    protected bool reusable;
 }

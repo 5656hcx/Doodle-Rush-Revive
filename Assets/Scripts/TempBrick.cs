@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class TempBrick : Brick
 {
-	public override void OnHitAction()
-	{
-		reusable = true;
-	}
+    public override void OnHitAction()
+    {
+        reusable = true;
+    }
 }

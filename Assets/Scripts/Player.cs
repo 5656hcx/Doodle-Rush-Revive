@@ -7,133 +7,141 @@ public class Player : MonoBehaviour
 {
     private float curr_speed_x;
     private float curr_speed_y;
+    private Vector3 new_pos;
 
     public GameController gameController;
     public SpriteRenderer spriteRenderer;
     public BrickManager brickManager;
-    public LineRenderer lineRenderer;
+    public DeadLine deadLine;
+
     public float speedX, speedY;
     public float force, gravity;
     public float flipOffset;
 
-    private float zombie_speed;
-    private float zombie_gravity;
+    public float dyingSpeedY;
+    public float dyingGravityScale;
 
     void Start()
     {
         curr_speed_x = 0;
         curr_speed_y = force * speedY;
-
-        zombie_speed = 0.2f;
-        zombie_gravity = 0.02f;
     }
 
-    void FixedUpdate()
-    {
-        if (gameController.GetState() == State.ZOMBIE)
+    void Update()
+    {   
+        // Do any modification before calculation
+        // 
+        if (gameController.GetState() == State.RUNNING)
         {
+            CheckInput();
+        }
+        
+        // Calculate next frame 
+        // 
+        new_pos = transform.position + new Vector3(curr_speed_x, curr_speed_y, 0) * Time.deltaTime;
+        curr_speed_y -= gravity * Time.deltaTime;
 
-            transform.position += new Vector3(0, zombie_speed, 0);
-            zombie_speed -= zombie_gravity;
-            if (zombie_speed < 0)
-            {
-                spriteRenderer.flipY = true;
-                float tmp = gameController.GameOver(GetBottomLine().y);
-                if (tmp > 0)
-                {
-                    zombie_speed = 0;
-                    zombie_gravity = 0;
-                    transform.position += new Vector3(0, tmp, 0);
-                    SceneManager.LoadScene(0);
-                }
-            }
-
-            return;
+        // Validate and revise next frame
+        // 
+        switch (gameController.GetState())
+        {
+            case State.RUNNING:
+                CheckSceneBound();
+                CheckDeadLine();
+                CheckBricks();
+                break;
+            case State.STOPPED:
+                CheckBricks();
+                break;
+            case State.ZOMBIE:
+                DyingAnimation();
+                break;
         }
 
+        transform.position = new_pos;
+    }
 
+    private Vector3 GetBottomLine(Vector3 pos)
+    {
+        float offset = spriteRenderer.flipX ? flipOffset : 0;
+        return new Vector3 (pos.x + offset - 0.415f, pos.y - 0.56f, pos.x + offset + 0.255f);
+    }
+
+    /* Active after player died */
+    private void DyingAnimation()
+    {
+        if (curr_speed_y < 0)
+        {
+            spriteRenderer.flipY = true;
+            float offset = deadLine.BoundCheck(GetBottomLine(new_pos).y);
+            if (offset != 0)
+            {
+                gravity = 0;
+                curr_speed_x = 0;
+                curr_speed_y = 0;
+                new_pos.y += offset;
+                gameController.EndPlaying();
+            }
+        }
+    }
+
+    /* Active when player hits bound of scene */
+    private void CheckSceneBound()
+    {
+        float offset = gameController.BoundCheck(new_pos.x, spriteRenderer.size.x);
+        if (offset != 0)
+        {
+            curr_speed_x = -curr_speed_x;
+        }
+        new_pos.x += offset;
+    }
+
+    /* Active when player hits dead line */
+    private void CheckDeadLine()
+    {
+        if (curr_speed_y < 0)
+        {
+            float offset = deadLine.BoundCheck(GetBottomLine(new_pos).y);
+            if (offset != 0)
+            {
+                gravity *= dyingGravityScale;
+                curr_speed_x = 0;
+                curr_speed_y = dyingSpeedY;
+                spriteRenderer.color = Color.grey;
+                gameController.SetState(State.ZOMBIE);
+            }
+            new_pos.y += offset;
+        }
+    }
+
+    /* Active when player hits any brick */
+    private void CheckBricks()
+    {
+        if (curr_speed_y < 0)
+        {
+            float offset = brickManager.BoundCheck(GetBottomLine(transform.position), GetBottomLine(new_pos));
+            if (offset != 0)
+            {
+                curr_speed_x = 0;
+                curr_speed_y = speedY;
+            }
+            new_pos.y += offset;
+        }
+    }
+
+    /* Active when receive player input */
+    private void CheckInput()
+    {
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            if (spriteRenderer.flipX == true)
-            {
-                spriteRenderer.flipX = false;
-                UpdateLine(-flipOffset);
-            }
             curr_speed_x = speedX;
+            spriteRenderer.flipX = false;
         }
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
-            if (spriteRenderer.flipX == false)
-            {
-                spriteRenderer.flipX = true;
-                UpdateLine(flipOffset);
-            }
             curr_speed_x = -speedX;
-        }
-
-        Vector3 old_bottom_line = GetBottomLine();
-        
-        transform.position += new Vector3(curr_speed_x, curr_speed_y, 0);
-        float left_edge = transform.position.x - spriteRenderer.size.x / 2;
-        float right_edge = transform.position.x + spriteRenderer.size.x / 2;
-        float offset_x = gameController.OutOfBound(left_edge, right_edge);
-        if (offset_x != 0)
-        {
-            curr_speed_x = -curr_speed_x;
-            transform.position += new Vector3(offset_x, 0, 0);
-        }        
-
-        
-        Vector3 new_bottom_line = GetBottomLine();
-
-        curr_speed_y -= gravity;
-        if (curr_speed_y < 0)
-        {
-
-            float offset_y = gameController.GameOver(new_bottom_line.y);
-            if (offset_y > 0)
-            {
-                DeadAction(offset_y);
-            }
-            else if ((offset_y = brickManager.CollideCheck(old_bottom_line, new_bottom_line)) != 0)
-            {
-                Vector3 revised_position = transform.position;
-                revised_position.y += offset_y;
-                transform.position = revised_position;
-                curr_speed_x = 0;
-                curr_speed_y = speedY;
-            }
+            spriteRenderer.flipX = true;
         }
     }
-
-    private Vector3 GetBottomLine()
-    {
-        Vector3 bottomLine = new Vector3();
-        bottomLine.x = transform.position.x + lineRenderer.GetPosition(0).x;
-        bottomLine.y = transform.position.y + lineRenderer.GetPosition(0).y;
-        bottomLine.z = transform.position.x + lineRenderer.GetPosition(1).x;
-        return bottomLine;
-    }
-
-    private void UpdateLine(float offset)
-    {
-        Vector3[] positions = new Vector3[lineRenderer.positionCount];
-        lineRenderer.GetPositions(positions);
-        for (int i=0; i<lineRenderer.positionCount; i++)
-        {
-            positions[i].x += offset;
-        }
-        lineRenderer.SetPositions(positions);
-    }
-
-    private void DeadAction(float offset)
-    {
-        curr_speed_x = 0;
-        curr_speed_y = 0;
-        gravity = 0;
-        transform.position += new Vector3(0, offset, 0);
-        spriteRenderer.color = Color.grey;
-    }
-
 }

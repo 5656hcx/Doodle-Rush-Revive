@@ -73,7 +73,7 @@ public class BrickManager : MonoBehaviour
     }
 
     /* Collision Check Utilities */
-    public float CollideCheck(Vector3 old_vec, Vector3 new_vec)
+    public float BoundCheck(Vector3 old_vec, Vector3 new_vec)
     {
         foreach (Brick brick in bricks)
         {

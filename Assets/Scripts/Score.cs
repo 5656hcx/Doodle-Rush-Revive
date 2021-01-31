@@ -5,27 +5,27 @@ using TMPro;
 
 public class Score : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
+    public GameController gameController;
+    public TextMeshProUGUI scoreText;
+    public int scoreRate;
+    private float score;
 
-    }
-
-    // Update is called once per frame
     void Update()
     {
         if (gameController.GetState() == State.RUNNING)
         {
-            int prev = (int) scoreVal;
-            scoreVal += scoreSpeed * Time.deltaTime;
-            if (prev != (int)scoreVal)
+            int prev = (int)score;
+            score += scoreRate * Time.deltaTime;
+            if (prev < (int)score)
             {
-            	GetComponent<TextMeshProUGUI>().text = ((int)scoreVal).ToString();
+                scoreText.text = ((int)score).ToString();
             }
         }
     }
 
-    public GameController gameController;
-    public int scoreSpeed;
-    private float scoreVal;
+    public int GetScore()
+    {
+        return (int)score;
+    }
+    
 }

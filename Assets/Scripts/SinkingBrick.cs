@@ -4,31 +4,41 @@ using UnityEngine;
 
 public class SinkingBrick : Brick
 {
-	public float sinkingSpeed;
-	public float sinkingAcceleration;
-	private bool sinking;
+    public float sinkingSpeed;
+    public float sinkingAcceleration;
+    private bool sinking;
 
-	public override void OnHitAction()
-	{
-		if (!sinking)
-		{
-			sinking = true;
-			speedY = sinkingSpeed;
-		}
-	}
-
-	protected override void Start()
+    protected override void Start()
     {
-    	sinking = false;
-    	base.Start();
+        sinking = false;
+        base.Start();
     }
 
     protected override void OnBecameInvisible()
     {
-    	speedY = 0;
-    	sinking = false;
-    	sinkingSpeed -= sinkingAcceleration;
+        speedY = 0;
+        sinking = false;
+        sinkingSpeed -= sinkingAcceleration;
         base.OnBecameInvisible();
+    }
+
+    public override float GetSpeedX()
+    {
+        return sinking ? 0 : base.GetSpeedX();
+    }
+
+    public override void SetSpeedX(float newSpeed)
+    {
+        if (sinking == false) base.SetSpeedX(newSpeed);
+    }
+
+    public override void OnHitAction()
+    {
+        if (sinking == false)
+        {
+            sinking = true;
+            speedY = sinkingSpeed;
+        }
     }
 
 }
