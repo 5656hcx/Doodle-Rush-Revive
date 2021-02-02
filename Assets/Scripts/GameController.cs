@@ -57,7 +57,7 @@ public class GameController: MonoBehaviour
         {
             if (state == State.STOPPED)
             {
-                if (!menuButtons.activeSelf)
+                if (!menuButtons.activeSelf && !endScreen.gameObject.activeSelf)
                 {
                     menuButtons.SetActive(true);
                     for (int i=0; i<menuPanels.transform.childCount; i++)
@@ -90,13 +90,10 @@ public class GameController: MonoBehaviour
 
     }
 
-    public float BoundCheck(float position, float size)
+    public float BoundCheck(float position, float offset)
     {
-        float left = position - size / 2;
-        float right = position + size / 2;
-
-        if (right > right_edge) return right_edge - right;
-        if (left < left_edge) return left_edge - left;
+        if (position + offset > right_edge) return right_edge - position - offset;
+        if (position - offset < left_edge) return left_edge - position + offset;
         return 0;
     }
 

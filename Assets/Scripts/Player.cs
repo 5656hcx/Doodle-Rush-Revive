@@ -3,6 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public struct Skin
+{
+    public Sprite sprite;
+    public float x0;
+    public float x1;
+    public float bot;
+    public float edge;
+    public float flipOffset;
+
+    public Skin(Sprite sp, float x0, float x1, float bot, float edge)
+    {
+        this.sprite = sp;
+        this.x0 = x0;
+        this.x1 = x1;
+        this.bot = bot;
+        this.edge = edge;
+        this.flipOffset = -1 * (x0 + x1);
+    }
+}
+
 public class Player : MonoBehaviour
 {
     private float curr_speed_x;
@@ -16,19 +36,24 @@ public class Player : MonoBehaviour
 
     public float speedX, speedY;
     public float force, gravity;
-    public float flipOffset;
 
     public float dyingSpeedY;
     public float dyingGravityScale;
+
+    public Sprite[] sprites;
+    private Skin[] skins;
+    private static int skinIndex = 0;
 
     void Start()
     {
         curr_speed_x = 0;
         curr_speed_y = force * speedY;
+        skins = SkinHelper.LoadSkins(sprites);
+        spriteRenderer.sprite = skins[skinIndex].sprite;
     }
 
     void Update()
-    {   
+    {
         CheckInput();
         
         // Calculate next frame 
@@ -41,7 +66,7 @@ public class Player : MonoBehaviour
         switch (gameController.GetState())
         {
             case State.RUNNING:
-                CheckSceneBound();
+                CheckSceneEdge();
                 CheckDeadLine();
                 CheckBricks();
                 break;
@@ -58,8 +83,12 @@ public class Player : MonoBehaviour
 
     private Vector3 GetBottomLine(Vector3 pos)
     {
-        float offset = spriteRenderer.flipX ? flipOffset : 0;
-        return new Vector3 (pos.x + offset - 0.415f, pos.y - 0.56f, pos.x + offset + 0.255f);
+        float offset = spriteRenderer.flipX ? skins[skinIndex].flipOffset : 0;
+        Vector3 vec = new Vector3();
+        vec.x = pos.x + offset + skins[skinIndex].x0;
+        vec.y = pos.y + skins[skinIndex].bot;
+        vec.z = pos.x + offset + skins[skinIndex].x1;
+        return vec;
     }
 
     /* Active after player died */
@@ -81,9 +110,9 @@ public class Player : MonoBehaviour
     }
 
     /* Active when player hits bound of scene */
-    private void CheckSceneBound()
+    private void CheckSceneEdge()
     {
-        float offset = gameController.BoundCheck(new_pos.x, spriteRenderer.size.x);
+        float offset = gameController.BoundCheck(new_pos.x, skins[skinIndex].edge);
         if (offset != 0)
         {
             curr_speed_x = -curr_speed_x;
@@ -141,5 +170,11 @@ public class Player : MonoBehaviour
                 spriteRenderer.flipX = true;
             }
         }
+    }
+
+    public void NewLook()
+    {
+    	if (++skinIndex == skins.Length) skinIndex = 0;
+    	spriteRenderer.sprite = skins[skinIndex].sprite;
     }
 }
