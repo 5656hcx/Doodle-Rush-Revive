@@ -9,8 +9,10 @@ public class GameController: MonoBehaviour
 {
 	public Camera mainCamera;
 	public LineRenderer deadLine;
+	public ScoreBoard scoreboard;
+	public EndScreen endScreen;
 
-	private State state = State.STOPPED;
+	public State state = State.STOPPED;
 	private float right_edge, left_edge;
 
 	public State GetState()
@@ -31,7 +33,8 @@ public class GameController: MonoBehaviour
 	public void EndPlaying()
 	{
 		SetState(State.STOPPED);
-		SceneManager.LoadScene(0);
+		scoreboard.gameObject.SetActive(false);
+		endScreen.gameObject.SetActive(true);
 	}
 
 	void Start()
@@ -46,8 +49,8 @@ public class GameController: MonoBehaviour
 		float right = position + size / 2;
 		
 		if (right > right_edge) return right_edge - right;
-		else if (left < left_edge) return left_edge - left;
-		else return 0;
+		if (left < left_edge) return left_edge - left;
+		return 0;
 	}
 	
 }
