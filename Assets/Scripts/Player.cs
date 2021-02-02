@@ -11,8 +11,9 @@ public struct Skin
     public float bot;
     public float edge;
     public float flipOffset;
+    public float fireOffset;
 
-    public Skin(Sprite sp, float x0, float x1, float bot, float edge)
+    public Skin(Sprite sp, float x0, float x1, float bot, float edge, float fo)
     {
         this.sprite = sp;
         this.x0 = x0;
@@ -20,6 +21,7 @@ public struct Skin
         this.bot = bot;
         this.edge = edge;
         this.flipOffset = -1 * (x0 + x1);
+        this.fireOffset = fo;
     }
 }
 
@@ -33,6 +35,8 @@ public class Player : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public BrickManager brickManager;
     public DeadLine deadLine;
+    public Sprite[] sprites;
+    public Bullet bullet;
 
     public float speedX, speedY;
     public float force, gravity;
@@ -40,7 +44,6 @@ public class Player : MonoBehaviour
     public float dyingSpeedY;
     public float dyingGravityScale;
 
-    public Sprite[] sprites;
     private Skin[] skins;
     private static int skinIndex = 0;
 
@@ -168,6 +171,15 @@ public class Player : MonoBehaviour
             {
                 curr_speed_x = -speedX;
                 spriteRenderer.flipX = true;
+            }
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                int direction = spriteRenderer.flipX ? -1 : 1;
+                float x = transform.position.x + skins[skinIndex].edge * direction;
+                float y = transform.position.y + skins[skinIndex].fireOffset;
+                bullet.gameObject.SetActive(true);
+                bullet.Fire(x, y, direction);
             }
         }
     }
