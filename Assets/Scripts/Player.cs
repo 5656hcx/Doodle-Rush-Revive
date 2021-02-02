@@ -29,12 +29,7 @@ public class Player : MonoBehaviour
 
     void Update()
     {   
-        // Do any modification before calculation
-        // 
-        if (gameController.GetState() == State.RUNNING)
-        {
-            CheckInput();
-        }
+        CheckInput();
         
         // Calculate next frame 
         // 
@@ -132,16 +127,19 @@ public class Player : MonoBehaviour
     /* Active when receive player input */
     private void CheckInput()
     {
-        if (Input.GetKey(KeyCode.RightArrow))
+        if (gameController.GetState() == State.RUNNING)
         {
-            curr_speed_x = speedX;
-            spriteRenderer.flipX = false;
-        }
+            if (Input.GetKey(KeyCode.RightArrow))
+            {
+                curr_speed_x = speedX;
+                spriteRenderer.flipX = false;
+            }
 
-        if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            curr_speed_x = -speedX;
-            spriteRenderer.flipX = true;
+            if (Input.GetKey(KeyCode.LeftArrow))
+            {
+                curr_speed_x = -speedX;
+                spriteRenderer.flipX = true;
+            }
         }
     }
 }

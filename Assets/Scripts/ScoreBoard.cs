@@ -37,13 +37,12 @@ public class ScoreBoard : MonoBehaviour
     public void UpdateLeaderboard()
     {
         int i = 1;
-        string text = "";
+        leaderboard.text = "";
         records = XMLHelper.Read(scoreCount);
         foreach (Record record in records)
         {
-            text += i++ + ". " + record;
+            leaderboard.text += i++ + ". " + record;
         }
-        leaderboard.text = text;
     }
 
     public void SaveScore(string name)
